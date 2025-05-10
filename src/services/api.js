@@ -1,4 +1,4 @@
-export const API = "https://artificial-cherianne-emekadefirst-4fe958c5.koyeb.app/";
+export const API = "https://artificial-cherianne-emekadefirst-4fe958c5.koyeb.app";
 // export const API = import.meta.env.VITE_API_URL;
 
 const access_token = localStorage.getItem("access_token");
