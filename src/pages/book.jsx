@@ -10,7 +10,7 @@ import { useSearchParams } from "react-router-dom";
 import { RxCross1 } from "react-icons/rx";
 import { FaSpinner } from "react-icons/fa";
 import { format } from "date-fns";
-import { API } from "../../services/api";
+import { API } from "../services/api";
 
 const BookingPage = () => {
   const apiUrl = API;
