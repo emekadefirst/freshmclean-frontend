@@ -190,7 +190,7 @@ const DateTimeSelector = ({ onDateTimeSelected, initialDateTime, frequency }) =>
             </div>
 
             {/* Time selection */}
-            <h3 className="font-medium mb-3">Select cleaning time</h3>
+            {/* <h3 className="font-medium mb-3">Select cleaning time</h3>
             <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                 {availableTimes.map((time) => (
                     <button
@@ -206,7 +206,7 @@ const DateTimeSelector = ({ onDateTimeSelected, initialDateTime, frequency }) =>
                         {time}
                     </button>
                 ))}
-            </div>
+            </div> */}
             
             {/* Selected dates summary */}
             {selectedDates.length > 0 && (

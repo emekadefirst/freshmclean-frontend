@@ -53,7 +53,7 @@ const DayTimeSelector = ({ onDayTimeSelected, initialDays = [], initialTime = '1
                 ))}
             </div>
 
-            <h3 className="font-medium mb-3">Select cleaning time</h3>
+            {/* <h3 className="font-medium mb-3">Select cleaning time</h3>
             <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                 {availableTimes.map((time) => (
                     <button
@@ -69,7 +69,7 @@ const DayTimeSelector = ({ onDayTimeSelected, initialDays = [], initialTime = '1
                         {time}
                     </button>
                 ))}
-            </div>
+            </div> */}
             
             {/* Selected days summary */}
             {selectedDays.length > 0 && (

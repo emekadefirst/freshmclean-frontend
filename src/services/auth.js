@@ -9,7 +9,6 @@ export function authenticate() {
 }
 
 
-
 export async function FromLogin(data) {
     const response = await apiCall("auth/login", data, "POST");
     localStorage.setItem('access_token', response.access_token);

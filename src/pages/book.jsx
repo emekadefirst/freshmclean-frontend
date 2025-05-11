@@ -351,9 +351,10 @@ const BookingPage = () => {
           extra_id: service.id,
           quantity: service.count,
         })),
-        discount_code: "", // Add discount code handling if needed
+        discount_code: "",
         latitude: latitude.toString(),
         logitude: longitude.toString(),
+        address: `${formData.street} ${formData.streetNumber}${formData.building ? `, ${formData.building}` : ''}${formData.apartmentNumber ? `, Apt ${formData.apartmentNumber}` : ''}, ${formData.postalCode} ${formData.city}`
       };
 
       console.log("Sending booking data:", formattedData);

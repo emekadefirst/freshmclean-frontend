@@ -54,27 +54,27 @@ const CleanerForm = () => {
 
     if (step === 1) {
       if (!formData.fullname.trim()) {
-        newErrors.fullname = t("validation.required");
+        newErrors.fullname = "Full Name is required";
         valid = false;
       } else {
         newErrors.fullname = "";
       }
 
       if (!formData.email) {
-        newErrors.email = t("validation.required");
+        newErrors.email = "Email is required";
         valid = false;
       } else if (!validateEmail(formData.email)) {
-        newErrors.email = t("validation.invalidEmail");
+        newErrors.email = "Invalid Email";
         valid = false;
       } else {
         newErrors.email = "";
       }
 
       if (!formData.phoneNumber) {
-        newErrors.phoneNumber = t("validation.required");
+        newErrors.phoneNumber = "Phone Number is required";
         valid = false;
       } else if (!validatePhone(formData.phoneNumber)) {
-        newErrors.phoneNumber = t("validation.invalidPhone");
+        newErrors.phoneNumber = "Invalid Phone Number";
         valid = false;
       } else {
         newErrors.phoneNumber = "";
@@ -83,11 +83,11 @@ const CleanerForm = () => {
 
     if (step === 2) {
       if (!formData.resume) {
-        toast.warning(t("Please upload your resume"));
+        toast.warning("Please upload your resume");
         valid = false;
       }
       if (!formData.idProof) {
-        toast.warning(t("Please upload your proof of ID"));
+        toast.warning("Please upload your proof of ID");
         valid = false;
       }
     }
@@ -164,9 +164,24 @@ const CleanerForm = () => {
       }
   
       try {
-        const response = await submitKYC(payload);
-        console.log(response)
-        toast.success(t("Application recieved"));
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/kyc/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${access_token}`
+          },
+          body: payload
+        });
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Handle API error response
+          const errorMessage = data.detail || 'Failed to submit application';
+          throw new Error(errorMessage);
+        }
+        
+        console.log(data);
+        toast.success("Application received");
         setCurrentStep(totalSteps);
   
         setFormData({
@@ -186,11 +201,8 @@ const CleanerForm = () => {
   
       } catch (error) {
         console.error("Application failed:", error);
-        toast.error(
-          error.response?.data?.error ??
-          error.message ??
-          t("Application failed")
-        );
+        // Show user-friendly error message
+        toast.error(error.message || "Failed to submit application. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -214,9 +226,9 @@ const CleanerForm = () => {
                 {isCompleted ? <BsCheckCircleFill className="w-5 h-5" /> : stepNum}
               </div>
               <span className={`text-xs mt-2 ${isActive ? 'text-blue-500 font-medium' : isCompleted ? 'text-green-500' : 'text-gray-500'}`}>
-                {stepNum === 1 ? t("Personal Information") :
-                  stepNum === 2 ? t("Upload documents") :
-                    t("Review Application")}
+                {stepNum === 1 ? "Personal Information" :
+                  stepNum === 2 ? "Upload documents" :
+                    "Review Application"}
               </span>
             </div>
           );
@@ -228,18 +240,18 @@ const CleanerForm = () => {
   const renderPersonalInfoStep = () => {
     return (
       <>
-        <h2 className="text-xl font-medium mb-6 text-gray-800">{t("cleaner.personalInformation")}</h2>
+        <h2 className="text-xl font-medium mb-6 text-gray-800">Personal Information</h2>
         <div className="space-y-5">
           <div>
             <label className="mb-2 text-sm text-gray-700 block font-medium">
-              {t("Fullname")}<span className="text-red-500">*</span>
+              Full Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="fullname"
               value={formData.fullname}
               onChange={handleChange}
-              placeholder={t("FullName")}
+              placeholder="Full Name"
               className={`border ${errors.fullname ? 'border-red-500' : 'border-gray-300'} rounded-lg placeholder:text-gray-400 bg-white py-3 px-4 block w-full focus:border-blue-500 focus:ring-blue-500 focus:outline-none`}
             />
             {errors.fullname && <p className="text-red-500 text-xs mt-1">{errors.fullname}</p>}
@@ -247,14 +259,14 @@ const CleanerForm = () => {
 
           <div>
             <label className="mb-2 text-sm text-gray-700 block font-medium">
-              {t("Email")}<span className="text-red-500">*</span>
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder={t("happyuser@example.com")}
+              placeholder="happyuser@example.com"
               className={`border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg placeholder:text-gray-400 bg-white py-3 px-4 block w-full focus:border-blue-500 focus:ring-blue-500 focus:outline-none`}
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -262,14 +274,14 @@ const CleanerForm = () => {
 
           <div>
             <label className="mb-2 text-sm text-gray-700 block font-medium">
-              {t("Phone number")}<span className="text-red-500">*</span>
+              Phone Number <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
-              placeholder={t("Phone number")}
+              placeholder="Phone Number"
               className={`border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg placeholder:text-gray-400 bg-white py-3 px-4 block w-full focus:border-blue-500 focus:ring-blue-500 focus:outline-none`}
             />
             {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>}
@@ -280,6 +292,12 @@ const CleanerForm = () => {
   };
 
   const FileUploadBox = ({ name, label, required = false, accept }) => {
+    const getFileTypeText = () => {
+      if (accept === '.pdf') return 'PDF file';
+      if (accept.includes('.jpg') || accept.includes('.jpeg') || accept.includes('.png')) return 'Image file (JPG, JPEG, PNG)';
+      return 'file';
+    };
+
     return (
       <div>
         <label className="mb-2 text-sm text-gray-700 block font-medium">
@@ -303,17 +321,17 @@ const CleanerForm = () => {
               >
                 <BsUpload className="text-gray-400 text-2xl mb-2" />
                 <p className="text-sm text-gray-500 font-medium">
-                  {t("Drag or upload")}
+                  Upload {getFileTypeText()}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {t("max size 10mb")}
+                  max size 10mb
                 </p>
                 <button
                   type="button"
                   className="mt-3 text-sm bg-blue-50 text-blue-600 px-4 py-2 rounded-md font-medium"
                   onClick={() => document.getElementById(name).click()}
                 >
-                  {t("select")}
+                  Select
                 </button>
               </label>
             </>
@@ -346,27 +364,27 @@ const CleanerForm = () => {
   const renderDocumentsStep = () => {
     return (
       <>
-        <h2 className="text-xl font-medium mb-6 text-gray-800">{t("Upload Documents ")}</h2>
+        <h2 className="text-xl font-medium mb-6 text-gray-800">Upload Documents</h2>
         <div className="space-y-6">
           <FileUploadBox
             name="resume"
-            label={t("resume")}
+            label="Resume"
             required={true}
-            accept=".pdf,.doc,.docx"
+            accept=".pdf"
           />
 
           <FileUploadBox
             name="idProof"
-            label={t("ID Proof")}
+            label="ID Proof"
             required={true}
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".jpg,.jpeg,.png"
           />
 
           <FileUploadBox
             name="workAuth"
-            label={t("Work authorization")}
+            label="Work authorization"
             required={false}
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".jpg,.jpeg,.png"
           />
 
         </div>
@@ -377,47 +395,47 @@ const CleanerForm = () => {
   const renderReviewStep = () => {
     return (
       <>
-        <h2 className="text-xl font-medium mb-6 text-gray-800">{t("cleaner.reviewApplication")}</h2>
+        <h2 className="text-xl font-medium mb-6 text-gray-800">Review Application</h2>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
-          <h3 className="font-medium text-gray-800 mb-3">{t("cleaner info")}</h3>
+          <h3 className="font-medium text-gray-800 mb-3">Cleaner Info</h3>
           <div className="space-y-2">
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("fullname")}</span>
+              <span className="text-sm text-gray-500">Full Name</span>
               <span className="text-sm font-medium">{formData.fullname}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("email")}</span>
+              <span className="text-sm text-gray-500">Email</span>
               <span className="text-sm font-medium">{formData.email}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("Phonenumber")}</span>
+              <span className="text-sm text-gray-500">Phone Number</span>
               <span className="text-sm font-medium">{formData.phoneNumber}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <h3 className="font-medium text-gray-800 mb-3">{t("cleaner.uploadedDocuments")}</h3>
+          <h3 className="font-medium text-gray-800 mb-3">Uploaded Documents</h3>
           <div className="space-y-2">
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("cleaner.resume")}</span>
-              <span className="text-sm font-medium text-green-600">{fileNames.resume || t("no file found")}</span>
+              <span className="text-sm text-gray-500">Resume</span>
+              <span className="text-sm font-medium text-green-600">{fileNames.resume || "no file found"}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("cleaner.identification")}</span>
-              <span className="text-sm font-medium text-green-600">{fileNames.idProof || t("no file found")}</span>
+              <span className="text-sm text-gray-500">ID Proof</span>
+              <span className="text-sm font-medium text-green-600">{fileNames.idProof || "no file found"}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:justify-between">
-              <span className="text-sm text-gray-500">{t("cleaner.workAuthorization")}</span>
-              <span className="text-sm font-medium">{fileNames.workAuth || t("no file found")}</span>
+              <span className="text-sm text-gray-500">Work Authorization</span>
+              <span className="text-sm font-medium">{fileNames.workAuth || "no file found"}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-6 bg-blue-50 p-4 rounded-lg">
           <p className="text-sm text-blue-700">
-            {t("cleaner.reviewMessage")}
+            Review Message
           </p>
         </div>
       </>
@@ -431,16 +449,16 @@ const CleanerForm = () => {
           <BsCheckCircleFill className="text-green-500 text-3xl" />
         </div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          {t("recieved")}
+          Recieved
         </h2>
         <p className="text-gray-600 mb-8">
-          {t("successful")}
+          Successful
         </p>
         <button
           onClick={() => navigate('/dashboard')}
           className="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-md font-medium"
         >
-          {t("redirecting")}
+          Redirecting
         </button>
       </div>
     );
@@ -466,12 +484,9 @@ const CleanerForm = () => {
       <div className="apply-bg py-12">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h1 className="text-white text-3xl md:text-4xl font-bold mb-2">
-              {t('Application')}
+            <h1 className="text-gray-900 text-3xl md:text-4xl font-bold mb-2">
+              Application
             </h1>
-            <p className="font-medium text-md text-white opacity-90">
-              {t('commit')}
-            </p>
           </div>
         </div>
       </div>
@@ -490,7 +505,7 @@ const CleanerForm = () => {
                 >
                   <BsArrowLeft className="mr-1" />
                   <span className="text-sm font-medium">
-                    {currentStep === 1 ? t("back") : t("previous")}
+                    {currentStep === 1 ? "Back" : "Previous"}
                   </span>
                 </button>
               </div>
@@ -509,7 +524,7 @@ const CleanerForm = () => {
                       onClick={prevStep}
                       className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50"
                     >
-                      {t("previous")}
+                      Previous
                     </button>
                   )}
 
@@ -519,7 +534,7 @@ const CleanerForm = () => {
                       onClick={nextStep}
                       className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium"
                     >
-                      {t("next")}
+                      Next
                     </button>
                   )}
 
@@ -535,10 +550,10 @@ const CleanerForm = () => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          {t("loading")}
+                          Loading
                         </>
                       ) : (
-                        t("submit")
+                        "Submit"
                       )}
                     </button>
                   )}

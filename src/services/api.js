@@ -31,7 +31,7 @@ export async function apiCall(path, data = null, method = 'GET', token = null) {
     console.log('API Response:', result);
 
     if (!response.ok) {
-      throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      throw new Error(result.detail || `HTTP error! status: ${response.status}`);
     }
 
     return {
